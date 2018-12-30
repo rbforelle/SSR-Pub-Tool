@@ -1,13 +1,13 @@
 #!/usr/bin/python
-#coding:utf-8
+# -*- coding:utf-8 -*-
 
 import base64
 import socket
 import json
 import platform
 
-def b64_url_decode(str):  # 处理padding，补足等号
-    return base64.urlsafe_b64decode(str+'='*(4-len(str)%4))
+def b64_url_decode(code):  # 处理padding，补足等号
+    return base64.urlsafe_b64decode(str(code+'='*(4-len(code)%4)))
 def b64_url_encode(str):  # 处理padding，去掉等号
     return base64.urlsafe_b64encode(str.encode("utf-8")).decode("utf-8").rstrip('=')
 
@@ -107,12 +107,12 @@ class SSRSrvConf():
         self.protocol = main_part_list[2]
         self.method = main_part_list[3]
         self.obfs = main_part_list[4]
-        self.password = b64_url_decode(main_part_list[5]).decode()
+        self.password = b64_url_decode(main_part_list[5]).decode("utf-8")
 
         d = {}  # 把可选部分输出到dict
         for item in optional_part_list:
             item_after_split = item.split('=')
-            d[item_after_split[0]] = b64_url_decode(item_after_split[1]).decode()
+            d[item_after_split[0]] = b64_url_decode(item_after_split[1]).decode("utf-8")
         # 可选部分的选项可能会变动
         # 用dict搜索关键词录入信息，默认值为空
         self.obfsparam = d.get('obfsparam', "")

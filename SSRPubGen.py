@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#coding:utf-8
+# -*- coding:utf-8 -*-
 
 import base64
 import SSRSrvConf as SSRSrv
@@ -31,9 +31,9 @@ def change_group(group,origin_file,output_file):  # 批量修改ssr链接的grou
     for line in lines:
         if line.startswith("ssr://"):
             print("------------- new srv",index,"-------------")
-            # print(line.replace('\n',""))
+            # print(line.rstrip('\n'))
             srv = SSRSrv.SSRSrvConf()
-            srv.import_from_ssr_link(line.replace('\n',""))
+            srv.import_from_ssr_link(line.rstrip('\n'))
             # srv.print_config()
             srv.set_group(group)
             f_out.write(srv.ssr_link())
@@ -53,9 +53,9 @@ def print_srv_info(origin_file):  # 打印文件中的ssr链接指向的服务�
     for line in lines:
         if line.startswith("ssr://"):
             print("------------- srv", index, "-------------")
-            # print(line.replace('\n',""))
+            # print(line.rstrip('\n'))
             srv = SSRSrv.SSRSrvConf()
-            srv.import_from_ssr_link(line.replace('\n', ""))
+            srv.import_from_ssr_link(line.rstrip('\n'))
             srv.print_config()
             index += 1
 
