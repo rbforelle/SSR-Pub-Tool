@@ -59,10 +59,34 @@ def print_srv_info(origin_file):  # 打印文件中的ssr链接指向的服务�
             srv.print_config()
             index += 1
 
+def change_remarks(srv_num, remarks, origin_file, output_file):  # 修改指定服务器的备注
+    index = 1
+    f_in = open(origin_file, 'r')
+    lines = f_in.readlines()
+    f_in.close()
+    f_out = open(output_file, 'w')
+    for line in lines:
+        if line.startswith("ssr://"):
+            if index==srv_num:
+                print("------------- srv", index, "-------------")
+                srv = SSRSrv.SSRSrvConf()
+                srv.import_from_ssr_link(line.rstrip('\n'))
+                srv.set_remarks(remarks)
+                srv.print_config()
+                f_out.write(srv.ssr_link())
+                f_out.write('\n')
+            else:
+                f_out.write(line)
+            index += 1
+        else:
+            f_out.write(line)
+    f_out.close()
+
 if __name__ == "__main__":
     origin_file = "addr_origin.txt"  # file to contain the original ssr server addresses
     pub_file = "public/addr.txt"  # file to publish the address
 
     print_srv_info(origin_file)  # 打印服务器信息
-    # change_group("test_group", origin_file, origin_file)
+    # change_remarks(1, "remarks", origin_file, origin_file)
+    change_group("test_group", origin_file, origin_file)  # 修改所有服务器的group
     gen_pub_file(origin_file,pub_file)  # 生成订阅配置文件
