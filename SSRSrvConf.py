@@ -5,6 +5,7 @@ import base64
 import socket
 import json
 import platform
+import argparse
 
 def b64_url_decode(code):  # 处理padding，补足等号
     return base64.urlsafe_b64decode(str(code+'='*(4-len(code)%4)))
@@ -121,19 +122,27 @@ class SSRSrvConf():
         self.group = d.get('group', "")
 
 
-if __name__ == "__main__":
+def parseArg():
     if platform.system() == "Linux":  # 判断平台方便测试
         config_file = "/etc/shadowsocks-r/config.json"
     else:
         config_file = "config.json"
 
-    # example_ssr_link = "ssr://MTkyLjE2OC4xLjEwODoxMjM0OmF1dGhfY2hhaW5fYTpub25lOnBsYWluOk1USXpORFUyLz9vYmZzcGFyYW09JnByb3RvcGFyYW09JnJlbWFya3M9Jmdyb3VwPQ"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--import_from", action="store", default=config_file, help="file to import server config")
+    parser.add_argument("-p" , action="store_true", help="print server config")
+
+    arg = parser.parse_args()
     srv1 = SSRSrvConf()
-    srv1.import_from_conf(config_file)  # 一般在服务器上通过配置文件导入设置
-    # srv1.import_from_ssr_link(example_ssr_link)  # 也可以通过链接导入设置
+    if arg.import_from.startswith("ssr://"):  # 判断是链接还是配置文件
+        srv1.import_from_ssr_link(arg.import_from)
+    else:
+        srv1.import_from_conf(arg.import_from)  # 一般在服务器上通过配置文件导入设置
+    if arg.p:
+        srv1.print_config()  # 打印当前服务器配置
+    else:
+        print(srv1.ssr_link())
 
-    srv1.print_config()  # 打印当前服务器配置
-    print(srv1.ssr_link())
 
-
-
+if __name__ == "__main__":
+    parseArg()
