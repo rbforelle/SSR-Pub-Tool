@@ -4,6 +4,8 @@
 import base64
 import SSRSrvConf as SSRSrv
 import argparse
+import shutil
+import os
 
 
 def gen_pub_file(origin_file,pub_file):  # 生成订阅配置文件
@@ -20,6 +22,10 @@ def gen_pub_file(origin_file,pub_file):  # 生成订阅配置文件
             f2.write(base64_str)
             f2.close()
         f1.close()
+
+def backup_file(path):
+    # shutil.copyfile("old", "new")
+    print("test")
 
 def change_group(group,origin_file,output_file):  # 批量修改ssr链接的group信息
     # 服务器自动配置的时候没有group信息
@@ -91,10 +97,11 @@ def change_remarks(srv_num, remarks, origin_file, output_file):  # 修改指定�
     print("intput: ", origin_file)
     print("output: ", output_file)
 
+
 def parseArg():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--generate", action="store_true", default=True, help="pub file will be generated if no special flags defined")
+    parser.add_argument("--generate", action="store_true", help="pub file will be generated if no special flags defined")
     parser.add_argument("-i", "--input_file", action="store", default="addr_origin.txt", help="default = addr_origin.txt")
     parser.add_argument("-o", "--output_file", action="store")
 
@@ -126,8 +133,14 @@ def parseArg():
         if arg.output_file is not None:
             output_file = arg.output_file
         change_group(arg.group, arg.input_file, output_file)
+    else:
+        if arg.output_file is None:  # 默认输出路径为public/addr.txt
+            output_file = "public/addr.txt"
+        else:
+            output_file = arg.output_file
+        gen_pub_file(arg.input_file, output_file)  # 生成订阅配置文件
 
-    elif arg.generate:  # 默认模式下直接生成pub_file
+    if arg.generate:  # 默认模式下直接生成pub_file
         if arg.output_file is None:  # 默认输出路径为public/addr.txt
             output_file = "public/addr.txt"
         else:
