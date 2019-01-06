@@ -91,31 +91,22 @@ def change_remarks(srv_num, remarks, origin_file, output_file):  # 修改指定�
     print("intput: ", origin_file)
     print("output: ", output_file)
 
-
-if __name__ == "__main__":
-    origin_file = "addr_origin.txt"  # file to contain the original ssr server addresses
-    pub_file = "public/addr.txt"  # file to publish the address
-
-
-    # change_remarks(1, "remarks", origin_file, origin_file)
-    # change_group("test_group", origin_file, origin_file)  # 修改所有服务器的group
-    # gen_pub_file(origin_file,pub_file)  # 生成订阅配置文件
-
+def parseArg():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--generate", action="store_true", default=True, help = "generate pub file, default=True")
-    parser.add_argument("-i", "--input_file", action="store", default="addr_origin.txt")
+    parser.add_argument("--generate", action="store_true", default=True, help="pub file will be generated if no special flags defined")
+    parser.add_argument("-i", "--input_file", action="store", default="addr_origin.txt", help="default = addr_origin.txt")
     parser.add_argument("-o", "--output_file", action="store")
 
     group = parser.add_argument_group("print server info")
     group.add_argument("-p", action="store_true", help="print server info")
 
     group2 = parser.add_argument_group("set remarks for server")
-    group2.add_argument("-s", "--srv_num", action="store", type=int, help = "server index to select")
-    group2.add_argument("-r", "--remarks", action="store", help = "remarks to set for the selected server")
+    group2.add_argument("-s", "--srv_num", action="store", type=int, help="server index to select")
+    group2.add_argument("-r", "--remarks", action="store", help="remarks to set for the selected server")
 
     group3 = parser.add_argument_group("set groups for all servers")
-    group3.add_argument("-g", "--group", action="store", help = "group to set for all servers")
+    group3.add_argument("-g", "--group", action="store", help="group to set for all servers")
 
     arg = parser.parse_args()
     # print(arg)
@@ -135,10 +126,14 @@ if __name__ == "__main__":
         if arg.output_file is not None:
             output_file = arg.output_file
         change_group(arg.group, arg.input_file, output_file)
-        
+
     elif arg.generate:  # 默认模式下直接生成pub_file
         if arg.output_file is None:  # 默认输出路径为public/addr.txt
             output_file = "public/addr.txt"
         else:
             output_file = arg.output_file
         gen_pub_file(arg.input_file, output_file)  # 生成订阅配置文件
+
+
+if __name__ == "__main__":
+    parseArg()
