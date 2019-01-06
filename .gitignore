@@ -1,7 +1,7 @@
 .gitmodules
 public/
 .idea
-addr_origin.txt
+*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

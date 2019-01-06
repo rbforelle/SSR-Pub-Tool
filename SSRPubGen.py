@@ -23,14 +23,22 @@ def gen_pub_file(origin_file,pub_file):  # 生成订阅配置文件
             f2.close()
         f1.close()
 
-def backup_file(path):
-    # shutil.copyfile("old", "new")
-    print("test")
+def backup_file(path):  # 备份文件到*_backup
+    prefix = os.path.splitext(path)[0]
+    suffix = os.path.splitext(path)[1]
+    backup_path = prefix + "_backup" + suffix
+    # print(prefix, suffix)
+    shutil.copy(path, backup_path)
+    print("backup from: ", path)
+    print("backup to: ", backup_path)
 
 def change_group(group,origin_file,output_file):  # 批量修改ssr链接的group信息
     # 服务器自动配置的时候没有group信息
     # 多个服务器配置复制到文本文件以后
     # 可以通过这个函数统一修改group信息
+    if origin_file is output_file:  # 若需要覆盖原文件，先备份
+        backup_file(origin_file)
+
     index = 1
     f_in = open(origin_file, 'r')
     lines = f_in.readlines()
@@ -73,11 +81,15 @@ def print_srv_info(origin_file):  # 打印文件中的ssr链接指向的服务�
             index += 1
 
 def change_remarks(srv_num, remarks, origin_file, output_file):  # 修改指定服务器的备注
+    if origin_file is output_file:  # 若需要覆盖原文件，先备份
+        backup_file(origin_file)
+
     index = 1
     f_in = open(origin_file, 'r')
     lines = f_in.readlines()
     f_in.close()
     f_out = open(output_file, 'w')
+
     for line in lines:
         if line.startswith("ssr://"):
             if index==srv_num:
@@ -104,7 +116,8 @@ def parseArg():
     parser.add_argument("--generate", action="store_true", help="use this option to generate 'public/addr.txt' \
     when remarks or groups set at the same time")
     parser.add_argument("-i", "--input_file", action="store", default="addr_origin.txt", help="default = addr_origin.txt")
-    parser.add_argument("-o", "--output_file", action="store")
+    parser.add_argument("-o", "--output_file", action="store", default="public/addr.txt", help="default = public/addr.txt, \
+    path of the generated pub file")
 
     group = parser.add_argument_group("print server info")
     group.add_argument("-p", action="store_true", help="print server info")
@@ -118,35 +131,26 @@ def parseArg():
 
     arg = parser.parse_args()
     # print(arg)
-    gen = False | arg.generate
-    addr_origin_output = arg.output_file
-    addr_origin = arg.input_file
-    pub_file = "public/addr.txt"
+    gen = arg.generate
 
-    if arg.p:
-        print_srv_info(addr_origin)  # 打印服务器信息
-    elif arg.srv_num > 0:  # 如果输入了服务器号码，则为修改备注模式
-        if arg.remarks is None:  # 没有输入备注，弹出提示
+    if arg.srv_num > 0:  # 如果输入了服务器号码，则为修改备注模式
+        if arg.remarks is None:  # 没有输入备注，弹出提示。
             parser.print_help()
         else:
-            if arg.output_file is None:  # 如果没有指定输出，则直接覆盖源文件
-                addr_origin_output = arg.input_file
-            change_remarks(arg.srv_num, arg.remarks, addr_origin, addr_origin_output)
-            addr_origin = addr_origin_output  # addr_origin的位置发生了改变
+            change_remarks(arg.srv_num, arg.remarks, arg.input_file, arg.input_file)
     elif arg.group is not None:  # 如果输入了group参数，则为修改group模式
-        if arg.output_file is None:  # 如果没有指定输出，则直接覆盖源文件
-            addr_origin_output = arg.input_file
-        change_group(arg.group, addr_origin, addr_origin_output)
-        addr_origin = addr_origin_output  # addr_origin的位置发生了改变
+        # 不允许单独修改某个服务器的group信息，只能统一改
+        change_group(arg.group, arg.input_file, arg.input_file)
+    elif arg.p:
+        print_srv_info(arg.input_file)  # 打印服务器信息
     else:
-        # if no special flags is set
-        gen = True
-        if arg.output_file is not None:
-            pub_file = arg.output_file
+        gen = True  # 若输入特殊的flags，则默认需要生成pub file
 
     if gen:
-        gen_pub_file(addr_origin, pub_file)  # 生成订阅配置文件
+        gen_pub_file(arg.input_file, arg.output_file)  # 生成订阅配置文件
 
 
 if __name__ == "__main__":
     parseArg()
+    # shutil.copyfile("addr_origin.txt", "addr_origin_backup.txt")
+
