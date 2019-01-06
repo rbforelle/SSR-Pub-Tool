@@ -118,37 +118,34 @@ def parseArg():
 
     arg = parser.parse_args()
     # print(arg)
-    is_generated = False
-    addr_origin_path = arg.input_file  # 存储ssr link的文件，如果下面修改了这个文件，则地址有可能发生变动
+    gen = False | arg.generate
+    addr_origin_output = arg.output_file
+    addr_origin = arg.input_file
+    pub_file = "public/addr.txt"
 
     if arg.p:
-        print_srv_info(arg.input_file)  # 打印服务器信息
+        print_srv_info(addr_origin)  # 打印服务器信息
     elif arg.srv_num > 0:  # 如果输入了服务器号码，则为修改备注模式
         if arg.remarks is None:  # 没有输入备注，弹出提示
             parser.print_help()
         else:
-            output_file = arg.input_file  # 修改备注时默认直接写入源文件
-            if arg.output_file is not None:
-                output_file = arg.output_file
-            change_remarks(arg.srv_num, arg.remarks, arg.input_file, output_file)
-            addr_origin_path = output_file  # 等会如果要generate，要用这个新生成文件的地址
+            if arg.output_file is None:  # 如果没有指定输出，则直接覆盖源文件
+                addr_origin_output = arg.input_file
+            change_remarks(arg.srv_num, arg.remarks, addr_origin, addr_origin_output)
+            addr_origin = addr_origin_output  # addr_origin的位置发生了改变
     elif arg.group is not None:  # 如果输入了group参数，则为修改group模式
-        output_file = arg.input_file  # 修改group时默认直接写入源文件
-        if arg.output_file is not None:
-            output_file = arg.output_file
-        change_group(arg.group, arg.input_file, output_file)
-        addr_origin_path = output_file  # 等会如果要generate，要用这个新生成文件的地址
+        if arg.output_file is None:  # 如果没有指定输出，则直接覆盖源文件
+            addr_origin_output = arg.input_file
+        change_group(arg.group, addr_origin, addr_origin_output)
+        addr_origin = addr_origin_output  # addr_origin的位置发生了改变
     else:
-        # 如果没有给出特定参数，则默认直接生成pub file
-        if arg.output_file is None:  # 默认输出路径为public/addr.txt
-            output_file = "public/addr.txt"
-        else:
-            output_file = arg.output_file
-        gen_pub_file(arg.input_file, output_file)  # 生成订阅配置文件
-        is_generated = True
+        # if no special flags is set
+        gen = True
+        if arg.output_file is not None:
+            pub_file = arg.output_file
 
-    if arg.generate and not is_generated:
-        gen_pub_file(addr_origin_path, "public/addr.txt")  # 生成订阅配置文件
+    if gen:
+        gen_pub_file(addr_origin, pub_file)  # 生成订阅配置文件
 
 
 if __name__ == "__main__":
