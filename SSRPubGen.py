@@ -9,11 +9,11 @@ import argparse
 def gen_pub_file(origin_file,pub_file):  # 生成订阅配置文件
     with open(origin_file, 'r') as f1:
         data = f1.read()
-        print("original_ssr_servers_data:")
+        print("--------intput: ", origin_file, "--------")
         print(data)
         data_bytes = data.encode("utf-8")  # get str to bytes
         base64_str = base64.b64encode(data_bytes).decode("utf-8")  # encode to b64 bytes then decode to str
-        print("base64_ssr_servers_data:")
+        print("--------output: ", pub_file, "--------")
         print(base64_str)
 
         with open(pub_file, 'w') as f2:
@@ -30,6 +30,7 @@ def change_group(group,origin_file,output_file):  # 批量修改ssr链接的grou
     lines = f_in.readlines()
     f_in.close()
     f_out = open(output_file, 'w')
+
     for line in lines:
         if line.startswith("ssr://"):
             print("------------- new srv",index,"-------------")
@@ -46,6 +47,10 @@ def change_group(group,origin_file,output_file):  # 批量修改ssr链接的grou
         else:
             f_out.write(line)
     f_out.close()
+    print("-------------------------")
+    print("change group to: ", group)
+    print("intput: ", origin_file)
+    print("output: ", output_file)
 
 def print_srv_info(origin_file):  # 打印文件中的ssr链接指向的服务器信息
     index = 1
@@ -83,26 +88,57 @@ def change_remarks(srv_num, remarks, origin_file, output_file):  # 修改指定�
         else:
             f_out.write(line)
     f_out.close()
-
+    print("intput: ", origin_file)
+    print("output: ", output_file)
 
 
 if __name__ == "__main__":
     origin_file = "addr_origin.txt"  # file to contain the original ssr server addresses
     pub_file = "public/addr.txt"  # file to publish the address
 
-    print_srv_info(origin_file)  # 打印服务器信息
+
     # change_remarks(1, "remarks", origin_file, origin_file)
     # change_group("test_group", origin_file, origin_file)  # 修改所有服务器的group
     # gen_pub_file(origin_file,pub_file)  # 生成订阅配置文件
 
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser()
 
-    group = parser.add_argument_group("generate pub file")
+    parser.add_argument("--generate", action="store_true", default=True, help = "generate pub file, default=True")
+    parser.add_argument("-i", "--input_file", action="store", default="addr_origin.txt")
+    parser.add_argument("-o", "--output_file", action="store")
 
-    group.add_argument("-i", "--input_file", action="store")
-    group.add_argument("-o", "--output_file", action="store")
+    group = parser.add_argument_group("print server info")
+    group.add_argument("-p", action="store_true", help="print server info")
 
-    group2 = parser.add_argument_group("change srv settings")
-    group2.add_argument("-a", "--aaa", action="store")
-    results = parser.parse_args()
-    print(parser.parse_args())
+    group2 = parser.add_argument_group("set remarks for server")
+    group2.add_argument("-s", "--srv_num", action="store", type=int, help = "server index to select")
+    group2.add_argument("-r", "--remarks", action="store", help = "remarks to set for the selected server")
+
+    group3 = parser.add_argument_group("set groups for all servers")
+    group3.add_argument("-g", "--group", action="store", help = "group to set for all servers")
+
+    arg = parser.parse_args()
+    # print(arg)
+    if arg.p:
+        print_srv_info(arg.input_file)  # 打印服务器信息
+    elif arg.srv_num > 0:  # 如果输入了服务器号码，则为修改备注模式
+        if arg.remarks is None:  # 没有输入备注，弹出提示
+            parser.print_help()
+        else:
+            output_file = arg.input_file  # 修改备注时默认直接写入源文件
+            if arg.output_file is not None:
+                output_file = arg.output_file
+            change_remarks(arg.srv_num, arg.remarks, arg.input_file, output_file)
+
+    elif arg.group is not None:  # 如果输入了group参数，则为修改group模式
+        output_file = arg.input_file  # 修改group时默认直接写入源文件
+        if arg.output_file is not None:
+            output_file = arg.output_file
+        change_group(arg.group, arg.input_file, output_file)
+        
+    elif arg.generate:  # 默认模式下直接生成pub_file
+        if arg.output_file is None:  # 默认输出路径为public/addr.txt
+            output_file = "public/addr.txt"
+        else:
+            output_file = arg.output_file
+        gen_pub_file(arg.input_file, output_file)  # 生成订阅配置文件
