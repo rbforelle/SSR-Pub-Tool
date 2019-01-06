@@ -3,6 +3,8 @@
 
 import base64
 import SSRSrvConf as SSRSrv
+import argparse
+
 
 def gen_pub_file(origin_file,pub_file):  # 生成订阅配置文件
     with open(origin_file, 'r') as f1:
@@ -82,11 +84,25 @@ def change_remarks(srv_num, remarks, origin_file, output_file):  # 修改指定�
             f_out.write(line)
     f_out.close()
 
+
+
 if __name__ == "__main__":
     origin_file = "addr_origin.txt"  # file to contain the original ssr server addresses
     pub_file = "public/addr.txt"  # file to publish the address
 
     print_srv_info(origin_file)  # 打印服务器信息
     # change_remarks(1, "remarks", origin_file, origin_file)
-    change_group("test_group", origin_file, origin_file)  # 修改所有服务器的group
-    gen_pub_file(origin_file,pub_file)  # 生成订阅配置文件
+    # change_group("test_group", origin_file, origin_file)  # 修改所有服务器的group
+    # gen_pub_file(origin_file,pub_file)  # 生成订阅配置文件
+
+    parser = argparse.ArgumentParser(add_help=False)
+
+    group = parser.add_argument_group("generate pub file")
+
+    group.add_argument("-i", "--input_file", action="store")
+    group.add_argument("-o", "--output_file", action="store")
+
+    group2 = parser.add_argument_group("change srv settings")
+    group2.add_argument("-a", "--aaa", action="store")
+    results = parser.parse_args()
+    print(parser.parse_args())
